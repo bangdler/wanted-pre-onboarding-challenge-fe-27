@@ -45,15 +45,15 @@ export async function action({ request }: ActionFunctionArgs) {
   // 유효성 검사
   const isValid = isValidEmail(email) && isValidPassword(password);
   if (!isValid) {
-    return json({ ok: false, errors: true });
+    return json({ ok: false, errors: true, details: "잘못된 입력입니다." });
   }
 
-  try {
-    const { token } = await login({ email, password });
+  const res = await login({ email, password });
+  if (res.ok) {
     return redirect("/", {
-      headers: { "Set-Cookie": `token=${token}; HttpOnly;` },
+      headers: { "Set-Cookie": `token=${res.token}; HttpOnly;` },
     });
-  } catch {
-    return json({ ok: false, errors: true });
+  } else {
+    return res;
   }
 }

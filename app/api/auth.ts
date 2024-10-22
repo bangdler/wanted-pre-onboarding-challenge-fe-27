@@ -1,3 +1,5 @@
+import fetchWrapper from "~/utils/fetchWrapper";
+
 const END_POINT = {
   login: "/users/login",
   signUp: "/users/create",
@@ -12,7 +14,7 @@ export const login = async ({
   email: string;
   password: string;
 }) => {
-  const res = await fetch(`${baseUrl}${END_POINT.login}`, {
+  const res = await fetchWrapper(`${baseUrl}${END_POINT.login}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -27,7 +29,7 @@ export const signUp = async ({
   email: string;
   password: string;
 }) => {
-  const res = await fetch(`${baseUrl}${END_POINT.signUp}`, {
+  const res = await fetchWrapper(`${baseUrl}${END_POINT.signUp}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
