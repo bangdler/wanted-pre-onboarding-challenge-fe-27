@@ -1,5 +1,5 @@
 import { ActionFunctionArgs } from "@remix-run/node";
-import { Form, json, Link, redirect, useActionData } from "@remix-run/react";
+import { Form, Link, redirect, useActionData } from "@remix-run/react";
 import { signUp } from "~/api/auth";
 import { isValidEmail, isValidPassword } from "~/utils/validate";
 
@@ -26,7 +26,7 @@ export default function SignUp() {
             <label>
               Password: <input type="password" name="password" />
             </label>
-            <p>{isError ? actionData.details : null}</p>
+            <p>{isError ? (actionData.data as string) : null}</p>
             <button type="submit" className="border rounded-lg p-4">
               회원가입
             </button>
@@ -45,13 +45,13 @@ export async function action({ request }: ActionFunctionArgs) {
   // 유효성 검사
   const isValid = isValidEmail(email) && isValidPassword(password);
   if (!isValid) {
-    return json({ ok: false, errors: true, details: "잘못된 입력입니다." });
+    return { ok: false, errors: true, data: "잘못된 입력입니다." };
   }
 
   const res = await signUp({ email, password });
   if (res.ok) {
     return redirect("/", {
-      headers: { "Set-Cookie": `token=${res.token}; HttpOnly;` },
+      headers: { "Set-Cookie": `token=${res.data}; HttpOnly;` },
     });
   } else {
     return res;

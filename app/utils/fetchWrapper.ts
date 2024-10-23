@@ -4,10 +4,10 @@ interface FetchWrapperOptions extends RequestInit {
   errorMessage?: string; // 커스텀 에러 메시지 옵션
 }
 
-export default async function fetchWrapper(
+const fetchWrapper = async <T>(
   url: string,
   options: FetchWrapperOptions = {}
-) {
+) => {
   const { errorMessage = "Fetch failed", ...fetchOptions } = options;
 
   try {
@@ -15,15 +15,15 @@ export default async function fetchWrapper(
 
     if (!response.ok) {
       const { details } = await response.json(); // 서버에서 반환하는 에러 메시지 가져오기
-      return json({ ok: false, errors: true, details });
+      return json({ ok: false, errors: true, data: details as string });
     }
 
-    // 응답이 JSON 형식이라고 가정하고 처리
-    const data = await response.json();
-    return data;
+    const { data } = await response.json();
+    return json({ ok: true, errors: false, data: data as T });
   } catch (error) {
-    // 에러 처리
     console.error(errorMessage, error);
-    return json({ ok: false, errors: true, details: errorMessage });
+    return json({ ok: false, errors: true, data: errorMessage });
   }
-}
+};
+
+export default fetchWrapper;
