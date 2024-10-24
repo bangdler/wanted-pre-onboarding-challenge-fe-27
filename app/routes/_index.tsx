@@ -1,7 +1,11 @@
-import { type LoaderFunctionArgs, type MetaFunction } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import {
+  ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from "@remix-run/node";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
-import { getTodo } from "~/api/todo";
+import { createTodo, getTodo } from "~/api/todo";
 import { TodoItem } from "~/type/todo";
 import { parseCookies } from "~/utils/parseCookies";
 
@@ -12,15 +16,17 @@ export const meta: MetaFunction = () => {
 export async function loader({ request }: LoaderFunctionArgs) {
   const cookieHeader = request.headers.get("Cookie");
   const { token } = parseCookies(cookieHeader);
-  const res = await getTodo(token);
 
+  const res = await getTodo(token);
   return res;
 }
 
 export default function Index() {
-  const res = useLoaderData<typeof loader>();
-  const isError = res.errors;
+  const loaderRes = useLoaderData<typeof loader>();
+  const isLoadError = loaderRes.errors;
   const [selectedTodo, setSelectedTodo] = useState<TodoItem | null>(null);
+  const fetcher = useFetcher<typeof action>();
+  const isActionError = fetcher.data?.errors;
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -28,11 +34,36 @@ export default function Index() {
         {/* Todo List */}
         <div className="w-1/3 border-r pr-4">
           <h2 className="text-2xl font-bold mb-4">Todo List</h2>
-          {isError ? (
+          {/* Input for new todo */}
+          <fetcher.Form method="post">
+            <div className="mb-4">
+              <input
+                name="title"
+                type="text"
+                placeholder="Enter todo title"
+                className="p-2 border border-gray-300 rounded w-full mb-2"
+              />
+              <textarea
+                name="content"
+                placeholder="Enter todo content"
+                className="p-2 border border-gray-300 rounded w-full mb-2"
+              />
+              <button
+                type="submit"
+                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+              >
+                Add Todo
+              </button>
+              {isActionError && (
+                <p className="text-gray-500">{fetcher.data?.data as string}</p>
+              )}
+            </div>
+          </fetcher.Form>
+          {isLoadError ? (
             <p className="text-gray-500">fetch failed </p>
           ) : (
             <ul>
-              {(res.data as TodoItem[]).map((todo) => (
+              {(loaderRes.data as TodoItem[]).map((todo) => (
                 <li
                   key={todo.id}
                   onClick={() => setSelectedTodo(todo)}
@@ -64,4 +95,16 @@ export default function Index() {
       </div>
     </div>
   );
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const cookieHeader = request.headers.get("Cookie");
+  const { token } = parseCookies(cookieHeader);
+
+  const formData = await request.formData();
+  const title = String(formData.get("title"));
+  const content = String(formData.get("content"));
+
+  const res = await createTodo({ token, title, content });
+  return res;
 }
