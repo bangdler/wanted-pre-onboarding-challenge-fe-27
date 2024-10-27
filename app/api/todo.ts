@@ -37,7 +37,6 @@ export const deleteTodo = async ({
   id,
 }: {
   token: string;
-  제;
   id: string;
 }) => {
   const res = await fetchWrapper<TodoItem[]>(
@@ -45,6 +44,28 @@ export const deleteTodo = async ({
     {
       method: "DELETE",
       headers: { Authorization: token, "Content-Type": "application/json" },
+    }
+  );
+  return await res.json();
+};
+
+export const updateTodo = async ({
+  token,
+  id,
+  title,
+  content,
+}: {
+  token: string;
+  id: string;
+  title: string;
+  content: string;
+}) => {
+  const res = await fetchWrapper<TodoItem[]>(
+    `${baseUrl}${END_POINT.todos}/${id}`,
+    {
+      method: "PUT",
+      headers: { Authorization: token, "Content-Type": "application/json" },
+      body: JSON.stringify({ title, content }),
     }
   );
   return await res.json();
