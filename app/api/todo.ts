@@ -2,14 +2,13 @@ import { TodoItem } from "~/type/todo";
 import fetchWrapper from "~/utils/fetchWrapper";
 
 const END_POINT = {
-  getTodo: "/todos",
-  createTodo: "/todos",
+  todos: "/todos",
 };
 
 const baseUrl = process.env.API_SERVER;
 
 export const getTodo = async (token: string) => {
-  const res = await fetchWrapper<TodoItem[]>(`${baseUrl}${END_POINT.getTodo}`, {
+  const res = await fetchWrapper<TodoItem[]>(`${baseUrl}${END_POINT.todos}`, {
     method: "GET",
     headers: { Authorization: token },
   });
@@ -25,12 +24,27 @@ export const createTodo = async ({
   title: string;
   content: string;
 }) => {
+  const res = await fetchWrapper<TodoItem[]>(`${baseUrl}${END_POINT.todos}`, {
+    method: "POST",
+    headers: { Authorization: token, "Content-Type": "application/json" },
+    body: JSON.stringify({ title, content }),
+  });
+  return await res.json();
+};
+
+export const deleteTodo = async ({
+  token,
+  id,
+}: {
+  token: string;
+  제;
+  id: string;
+}) => {
   const res = await fetchWrapper<TodoItem[]>(
-    `${baseUrl}${END_POINT.createTodo}`,
+    `${baseUrl}${END_POINT.todos}/${id}`,
     {
-      method: "POST",
+      method: "DELETE",
       headers: { Authorization: token, "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content }),
     }
   );
   return await res.json();

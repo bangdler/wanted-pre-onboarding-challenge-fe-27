@@ -5,7 +5,7 @@ import {
 } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
-import { createTodo, getTodo } from "~/api/todo";
+import { createTodo, deleteTodo, getTodo } from "~/api/todo";
 import { TodoItem } from "~/type/todo";
 import { parseCookies } from "~/utils/parseCookies";
 
@@ -66,12 +66,24 @@ export default function Index() {
               {(loaderRes.data as TodoItem[]).map((todo) => (
                 <li
                   key={todo.id}
-                  onClick={() => setSelectedTodo(todo)}
-                  className={`p-2 mb-2 cursor-pointer hover:bg-gray-200 rounded ${
+                  className={`p-2 mb-2 cursor-pointer hover:bg-gray-200 rounded flex justify-between items-center ${
                     selectedTodo?.id === todo.id ? "bg-gray-300" : "bg-gray-100"
                   }`}
                 >
-                  {todo.title}
+                  <span onClick={() => setSelectedTodo(todo)}>
+                    {todo.title}
+                  </span>
+
+                  {/* Delete button */}
+                  <fetcher.Form method="delete">
+                    <input type="hidden" name="todoId" value={todo.id} />
+                    <button
+                      type="submit"
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      Delete
+                    </button>
+                  </fetcher.Form>
                 </li>
               ))}
             </ul>
@@ -100,11 +112,21 @@ export default function Index() {
 export async function action({ request }: ActionFunctionArgs) {
   const cookieHeader = request.headers.get("Cookie");
   const { token } = parseCookies(cookieHeader);
-
   const formData = await request.formData();
-  const title = String(formData.get("title"));
-  const content = String(formData.get("content"));
 
-  const res = await createTodo({ token, title, content });
-  return res;
+  switch (request.method) {
+    case "POST": {
+      const title = String(formData.get("title"));
+      const content = String(formData.get("content"));
+
+      const res = await createTodo({ token, title, content });
+      return res;
+    }
+    case "DELETE": {
+      const id = String(formData.get("todoId"));
+
+      const res = await deleteTodo({ token, id });
+      return res;
+    }
+  }
 }
