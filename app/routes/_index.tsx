@@ -32,7 +32,7 @@ export default function Index() {
   useEffect(() => {
     if (fetcher.formMethod === "PUT" && fetcher.data?.ok) {
       setEditingTodo(null);
-      setSelectedTodo(fetcher.data?.data);
+      setSelectedTodo(fetcher.data?.data as TodoItem);
     }
     if (fetcher.formMethod === "DELETE" && fetcher.data?.ok) {
       setSelectedTodo(null);
